@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>환자 사진 정리 앱 초안</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="앱 정보">
+        <div class="brand-mark" aria-hidden="true">P</div>
+        <div>
+          <h1>환자 사진 정리</h1>
+          <p>NAS 저장 폴더 기준 자동 정리 초안</p>
+        </div>
+
+        <div class="server-box">
+          <span class="label">저장 위치</span>
+          <strong>\\10.10.72.128</strong>
+          <small>성형외과공유폴더 · 2026년 사진 · 문석호 교수님 사진</small>
+        </div>
+
+        <nav class="tab-list" aria-label="화면 선택">
+          <button class="tab-button active" type="button" data-tab="register">사진 등록</button>
+          <button class="tab-button" type="button" data-tab="search">자료 검색</button>
+        </nav>
+      </aside>
+
+      <main>
+        <section class="top-strip">
+          <div>
+            <p class="eyebrow">Prototype</p>
+            <h2>입력하면 저장될 폴더와 파일명을 미리 보여줍니다</h2>
+          </div>
+          <div class="status-pill" id="connectionStatus">NAS 경로 설정됨</div>
+        </section>
+
+        <section class="tab-panel active" id="registerPanel">
+          <form class="workspace" id="patientForm">
+            <section class="form-panel" aria-labelledby="patientInfoTitle">
+              <div class="section-heading">
+                <p class="eyebrow">Step 1</p>
+                <h3 id="patientInfoTitle">환자 정보</h3>
+              </div>
+
+              <div class="field-grid">
+                <label>
+                  환자 이름
+                  <input id="patientName" type="text" placeholder="예: 홍길동" autocomplete="off" />
+                </label>
+                <label>
+                  등록번호
+                  <input id="patientId" type="text" placeholder="예: 12345678" autocomplete="off" />
+                </label>
+                <label>
+                  수술명
+                  <input id="operationName" type="text" placeholder="예: Z-plasty" autocomplete="off" />
+                </label>
+                <div class="dynamic-field">
+                  <label for="diagnosisInput">진단명</label>
+                  <div class="add-row">
+                    <input id="diagnosisInput" type="text" placeholder="예: Scar revision" autocomplete="off" />
+                    <button class="secondary-button" type="button" id="addDiagnosis">추가</button>
+                  </div>
+                  <div class="chip-list" id="diagnosisList">
+                    <p>추가된 진단명이 없습니다.</p>
+                  </div>
+                </div>
+                <div class="dynamic-field">
+                  <label for="operationDateInput">수술일</label>
+                  <div class="add-row">
+                    <input id="operationDateInput" type="date" />
+                    <button class="secondary-button" type="button" id="addOperationDate">추가</button>
+                  </div>
+                  <div class="chip-list" id="operationDateList">
+                    <p>추가된 수술일이 없습니다.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="surgeon-block">
+                <span>수술자</span>
+                <div class="segmented" role="group" aria-label="수술자 선택">
+                  <button type="button" class="surgeon-option active" data-surgeon="J">J</button>
+                  <button type="button" class="surgeon-option" data-surgeon="O">O</button>
+                  <button type="button" class="surgeon-option" data-surgeon="M">M</button>
+                  <button type="button" class="surgeon-option" data-surgeon="C">C</button>
+                  <button type="button" class="surgeon-option" data-surgeon="Y">Y</button>
+                  <button type="button" class="surgeon-option" data-surgeon="L">L</button>
+                  <button type="button" class="surgeon-option wide" data-surgeon="Consult">Consult</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-panel" aria-labelledby="photoTitle">
+              <div class="section-heading">
+                <p class="eyebrow">Step 2</p>
+                <h3 id="photoTitle">사진 추가</h3>
+              </div>
+
+              <label class="file-drop">
+                <input id="photoInput" type="file" accept="image/*" multiple />
+                <span class="file-icon" aria-hidden="true">+</span>
+                <strong>여러 사진 파일 선택</strong>
+                <small>사진의 촬영일 정보를 읽어 날짜별 폴더로 나눕니다.</small>
+              </label>
+
+              <div class="selected-files" id="selectedFiles">
+                <div class="file-count">선택된 사진 0개</div>
+                <p>여러 번 나눠 선택해도 목록에 계속 추가됩니다.</p>
+              </div>
+
+              <div class="op-row">
+                <label class="switch">
+                  <input id="opDayToggle" type="checkbox" />
+                  <span></span>
+                  Op Day로 입력
+                </label>
+                <button class="secondary-button" type="button" id="loadSample">예시 채우기</button>
+              </div>
+            </section>
+
+            <section class="preview-panel" aria-labelledby="previewTitle">
+              <div class="section-heading">
+                <p class="eyebrow">Step 3</p>
+                <h3 id="previewTitle">저장 미리보기</h3>
+              </div>
+
+              <div class="folder-preview">
+                <span class="label">상위 폴더</span>
+                <code id="baseFolder">정보를 입력하면 표시됩니다</code>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>날짜 폴더</th>
+                      <th>변경될 파일명</th>
+                      <th>원본 파일</th>
+                    </tr>
+                  </thead>
+                  <tbody id="planRows">
+                    <tr>
+                      <td colspan="3" class="empty-state">사진을 선택하면 저장 계획이 표시됩니다.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="action-row">
+                <button class="primary-button" type="button" id="savePlan">저장 계획 확인</button>
+                <button class="secondary-button" type="reset">초기화</button>
+              </div>
+
+              <p class="helper-text" id="saveMessage">
+                실제 NAS 저장은 다음 개발 단계에서 연결합니다.
+              </p>
+            </section>
+          </form>
+        </section>
+
+        <section class="tab-panel" id="searchPanel">
+          <div class="search-layout">
+            <section class="form-panel">
+              <div class="section-heading">
+                <p class="eyebrow">Search</p>
+                <h3>자료 검색</h3>
+              </div>
+
+              <div class="search-grid">
+                <input id="searchInput" type="search" placeholder="환자명, 등록번호, 진단명, 수술명, 수술일 검색" />
+                <button class="primary-button" type="button" id="searchButton">검색</button>
+              </div>
+            </section>
+
+            <section class="preview-panel">
+              <div class="section-heading">
+                <p class="eyebrow">Result</p>
+                <h3>검색 결과 예시</h3>
+              </div>
+              <div class="result-list" id="resultList"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
