@@ -1,0 +1,24 @@
+# Windows / editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+*.log
+
+# Real patient photos or generated output must not be committed.
+output/*
+!output/.gitkeep
+
+# Keep the Assets folder, but do not commit real patient images by accident.
+Assets/*
+!Assets/.gitkeep
+
+# Local environment files
+.env
+.env.*
+config.local.json
